@@ -1,37 +1,42 @@
-const muler = require("multer");
-const path = require("path");
+const multer = require('multer');
+const path = require('path');
 
-const storage = muler.diskStorage({
+// Konfigurasi penyimpanan file
+const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        cb(null, 'uploads/'); 
     },
 
     filename: (req, file, cb) => {
-        const uniqueName = Date.now() + "-" + file.originalname;
-        cb(null, uniqueName);
+        const uniqueSuffix = Date.now() + '-' + file.originalname;           
+        cb(null, uniqueSuffix);
     }
 });
 
-const filefilter = (req, file, cb) => {
-    const allowedTypes = /jpg|jpeg|png/;
+// Filter file untuk hanya menerima file gambar
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
 
     const extname = allowedTypes.test(
         path.extname(file.originalname).toLowerCase()
     );
-    
-    const mimetype = allowedTypes.test(file.mimetype);
+
+    const mimetype = allowedTypes.test(file.mimetype) || file.mimetype === 'application/octet-stream';
 
     if (extname && mimetype) {
-        cb(null, true);
+        return cb(null, true);
     } else {
-        cb(new Error("Hanya file JPG, JPEG, dan PNG yang diperbolehkan!"));
+        cb(new Error('Hanya file JPG, JPEG, dan PNG yang diperbolehkan.'));
     }
 };
 
-const upload = muler({
+// Membuat middleware upload menggunakan multer
+const upload = multer({
     storage: storage,
-    fileFilter: filefilter,
-    limits: { fileSize: 2 * 1024 * 1024 } // 2MB
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 2 * 1024 * 1024 // Batas ukuran file 2MB
+    }
 });
 
 module.exports = upload;
